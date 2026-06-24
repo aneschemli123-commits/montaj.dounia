@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>متجر دنيا - منتجات العناية بالبشرة</title>
+    <style>
+        :root {
+            --primary-color: #e28743;
+            --text-color: #333;
+            --bg-color: #fcf8f2;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        header { text-align: center; padding: 20px 0; border-bottom: 2px solid #f1f1f1; }
+        header h1 { color: var(--primary-color); font-size: 24px; }
+        .product-image { width: 100%; max-height: 400px; object-fit: cover; border-radius: 8px; margin-top: 15px; }
+        .product-info { margin: 20px 0; text-align: center; }
+        .price-tag { font-size: 22px; color: #e63946; font-weight: bold; margin: 10px 0; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; text-align: right; }
+        .shipping-info { background: #f9f9f9; padding: 15px; border-radius: 5px; margin: 15px 0; border-right: 4px solid var(--primary-color); }
+        .total-price { font-size: 20px; font-weight: bold; color: #2a9d8f; text-align: center; margin: 15px 0; }
+        .btn-order { display: block; width: 100%; background: var(--primary-color); color: white; border: none; padding: 15px; font-size: 18px; font-weight: bold; border-radius: 5px; cursor: pointer; transition: 0.3s; text-align: center; text-decoration: none; }
+        .btn-order:hover { background: #cd712c; }
+        footer { text-align: center; padding: 20px; font-size: 12px; color: #777; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>متجر دنيا لمنتجات العناية</h1>
+        <p>أفضل المنتجات الطبيعية لبشرة نضرة ومشرقة</p>
+        <img src="product.jpg" alt="منتج العناية بالبشرة" class="product-image">
+    </header>
+
+    <div class="product-info">
+        <h3>سيروم العناية الفائق بالبشرة</h3>
+        <p class="price-tag">السعر: <span id="product-price">3500</span> دج</p>
+    </div>
+
+    <!-- استمارة الطلب -->
+    <form id="orderForm">
+        <div class="form-group">
+            <label for="fullName">الاسم الكامل:</label>
+            <input type="text" id="fullName" placeholder="أدخل اسمك الكامل" required>
+        </div>
+
+        <div class="form-group">
+            <label for="phone">رقم الهاتف:</label>
+            <input type="tel" id="phone" placeholder="أدخل رقم هاتفك" required>
+        </div>
+
+        <div class="form-group">
+            <label for="wilaya">الولاية:</label>
+            <select id="wilaya" required onchange="updateShipping()">
+                <option value="">-- اختر ولايتك --</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="shippingType">نوع التوصيل (Yalidine):</label>
+            <select id="shippingType" required onchange="updateShipping()">
+                <option value="home">توصيل للمنزل (À domicile)</option>
+                <option value="office">استلام من مكتب ياليدين (Stop Desk)</option>
+            </select>
+        </div>
+
+        <div class="shipping-info">
+            <p>سعر التوصيل: <span id="shipping-cost">0</span> دج</p>
+        </div>
+
+        <div class="total-price">
+            إجمالي الدفع عند الاستلام: <span id="final-total">3500</span> دج
+        </div>
+
+        <button type="button" class="btn-order" onclick="sendOrder()">إضغط هنا لتأكيد الطلب عبر الواتساب</button>
+    </form>
+
+    <footer>
+        جميع الحقوق محفوظة لمتجر دنيا &copy; 2026
+    </footer>
+</div>
+
+<script>
+    // رقم واتساب دنيا (تأكد من تعديله هنا)
+    const whatsappNumber = "213555123456"; 
+    
+    const basePrice = 3500; // سعر المنتج الثابت
+
+    // أسعار شحن ياليدين التقريبية لولايات الجزائر (العاصمة، الوسط، الشرق، الغرب، الجنوب)
+    // يمكنك تعديل هذه الأسعار بدقة حسب اتفاقك مع ياليدين
+    const shippingRates = {
+        "1": { name: "01 - أدرار", home: 1000, office: 700 },
+        "2": { name: "02 - الشلف", home: 650, office: 400 },
+        "3": { name: "03 - الأغواط", home: 800, office: 550 },
+        "4": { name: "04 - أم البواقي", home: 650, office: 400 },
+        "5": { name: "05 - باتنة", home: 650, office: 400 },
+        "6": { name: "06 - بجاية", home: 600, office: 350 },
+        "7": { name: "07 - بسكرة", home: 750, office: 500 },
+        "8": { name: "08 - بشار", home: 950, office: 650 },
+        "9": { name: "09 - البليدة", home: 450, office: 250 },
+        "10": { name: "10 - البويرة", home: 550, office: 350 },
+        "11": { name: "11 - تمنراست", home: 1200, office: 850 },
+        "12": { name: "12 - تبسة", home: 700, office: 450 },
+        "13": { name: "13 - تلمسان", home: 700, office: 450 },
+        "14": { name: "14 - تيارت", home: 650, office: 400 },
+        "15": { name: "15 - تيزي وزو", home: 550, office: 350 },
+        "16": { name: "16 - الجزائر العاصمة", home: 400, office: 200 },
+        "17": { name: "17 - الجلفة", home: 700, office: 450 },
+        "18": { name: "18 - جيجل", home: 650, office: 400 },
+        "19": { name: "19 - سطيف", home: 600, office: 350 },
+        "20": { name: "20 - سعيدة", home: 700, office: 450 },
+        "21": { name: "21 - سكيكدة", home: 650, office: 400 },
+        "22": { name: "22 - سيدي بلعباس", home: 700, office: 450 },
+        "23": { name: "23 - عنابة", home: 650, office: 400 },
+        "24": { name: "24 - قالمة", home: 650, office: 400 },
+        "25": { name: "25 - قسنطينة", home: 600, office: 350 },
+        "26": { name: "26 - المدية", home: 550, office: 350 },
+        "27": { name: "27 - مستغانم", home: 650, office: 400 },
+        "28": { name: "28 - المسيلة", home: 650, office: 400 },
+        "29": { name: "29 - معسكر", home: 650, office: 400 },
+        "30": { name: "30 - ورقلة", home: 850, office: 600 },
+        "31": { name: "31 - وهران", home: 600, office: 350 },
+        "32": { name: "32 - البيض", home: 850, office: 600 },
+        "33": { name: "33 - إليزي", home: 1200, office: 900 },
+        "34": { name: "34 - برج بوعريريج", home: 600, office: 350 },
+        "35": { name: "35 - بومرداس", home: 500, office: 300 },
+        "36": { name: "36 - الطارف", home: 700, office: 450 },
+        "37": { name: "37 - تيندوف", home: 1300, office: 950 },
+        "38": { name: "38 - تسمسيلت", home: 650, office: 400 },
+        "39": { name: "39 - الوادي", home: 800, office: 550 },
+        "40": { name: "40 - خنشلة", home: 700, office: 450 },
+        "41": { name: "41 - سوق أهراس", home: 700, office: 450 },
+        "42": { name: "42 - تيبازة", home: 500, office: 300 },
+        "43": { name: "43 - ميلة", home: 650, office: 400 },
+        "44": { name: "44 - عين الدفلى", home: 550, office: 350 },
+        "45": { name: "45 - النعامة", home: 850, office: 600 },
+        "46": { name: "46 - عين تموشنت", home: 650, office: 400 },
+        "47": { name: "47 - غرداية", home: 800, office: 550 },
+        "48": { name: "48 - غليزان", home: 650, office: 400 },
+        // الولايات الجديدة
+        "49": { name: "49 - تيميمون", home: 1100, office: 800 },
+        "50": { name: "50 - برج باجي مختار", home: 1500, office: 1100 },
+        "51": { name: "51 - أولاد جلال", home: 800, office: 550 },
+        "52": { name: "52 - بني عباس", home: 1000, office: 700 },
+        "53": { name: "53 - عين صالح", home: 1200, office: 850 },
+        "54": { name: "54 - عين قزام", home: 1500, office: 1100 },
+        "55": { name: "55 - تقرت", home: 850, office: 600 },
+        "56": { name: "56 - الجانت", home: 1400, office: 1000 },
+        "57": { name: "57 - المغير", home: 850, office: 600 },
+        "58": { name: "58 - المنيعة", home: 900, office: 650 }
+    };
+
+    // توليد الولايات داخل قائمة الاختيار تلقائياً عند فتح الصفحة
+    const wilayaSelect = document.getElementById('wilaya');
+    for (const code in shippingRates) {
+        const option = document.createElement('option');
+        option.value = code;
+        option.textContent = shippingRates[code].name;
+        wilayaSelect.appendChild(option);
+    }
+
+    // تحديث سعر التوصيل والإجمالي
+    function updateShipping() {
+        const wilayaCode = document.getElementById('wilaya').value;
+        const shippingType = document.getElementById('shippingType').value;
+        let shippingCost = 0;
+
+        if (wilayaCode && shippingRates[wilayaCode]) {
+            shippingCost = shippingRates[wilayaCode][shippingType];
+        }
+
+        document.getElementById('shipping-cost').textContent = shippingCost;
+        document.getElementById('final-total').textContent = basePrice + shippingCost;
+    }
+
+    // إرسال الطلب للواتساب
+    function sendOrder() {
+        const name = document.getElementById('fullName').value;
+        const phone = document.getElementById('phone').value;
+        const wilayaCode = document.getElementById('wilaya').value;
+        const shippingType = document.getElementById('shippingType').value;
+
+        if (!name || !phone || !wilayaCode) {
+            alert("يرجى ملء جميع الخانات المفتوحة أولاً!");
+            return;
+        }
+
+        const wilayaName = shippingRates[wilayaCode].name;
+        const shippingTypeName = shippingType === 'home' ? "توصيل للمنزل" : "استلام من مكتب Yalidine";
+        const shippingCost = shippingRates[wilayaCode][shippingType];
+        const finalTotal = basePrice + shippingCost;
+
+        // صياغة الرسالة الجاهزة للواتساب
+        const message = `أهلاً متجر دنيا، أود طلب منتج العناية بالبشرة:%0A%0A` +
+                        `👤 *الاسم الكامل:* ${name}%0A` +
+                        `📞 *رقم الهاتف:* ${phone}%0A` +
+                        `📍 *الولاية:* ${wilayaName}%0A` +
+                        `🚚 *نوع الشحن:* ${shippingTypeName}%0A` +
+                        `💰 *سعر الشحن:* ${shippingCost} دج%0A` +
+                        `💵 *الإجمالي للدفع عند الاستلام:* ${finalTotal} دج`;
+
+        // فتح الواتساب برابط مباشر
+        const url = `https://wa.me/${whatsappNumber}?text=${message}`;
+        window.open(url, '_blank');
+    }
+</script>
+
+</body>
+</html>
